@@ -1,12 +1,12 @@
 "Defines configuration and pinned versions for the GraalVM Rules project."
 
-GRAALVM_VERSION = "20.0.2"
+GRAALVM_VERSION = "21.0.0"
 
-GRAALVM_SDK_VERSION = "23.0.1"
+GRAALVM_SDK_VERSION = "23.1.0"
 
 GRAALVM_DISTRIBUTION = "ce"
 
-GRAALVM_JAVA_VERSION = "20"
+GRAALVM_JAVA_VERSION = "21"
 
 GRAALVM_SHA = None
 
@@ -47,11 +47,6 @@ MAVEN_REPOSITORIES = [
     "https://maven.pkg.st",
     "https://maven.google.com",
     "https://repo1.maven.org/maven2",
-]
-
-GRAALVM_COMPONENTS = [
-    "wasm",
-    "js",
 ]
 
 TARGET_JAVA_VERSIONS = [

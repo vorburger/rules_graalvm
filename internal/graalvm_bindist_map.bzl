@@ -53,6 +53,7 @@ _ComponentDependencies = {
 # Aligned GraalVM distribution versions.
 # buildifier: disable=name-conventions
 _AlignedVersions = {
+    "21.0.0": "23.1.0",
     "20.0.2": "23.0.1",
     "20.0.1": "23.0.1",
     "17.0.8": "23.0.1",
@@ -62,6 +63,8 @@ _AlignedVersions = {
 # VM release versions for calculating prefixes.
 # buildifier: disable=name-conventions
 _VmReleaseVersions = {
+    "23.1.0": "21+35.1",
+    "21.0.0": "21+35.1",
     "20.0.2": "20.0.2+9.1",
     "20.0.1": "20.0.1+9.1",
     "17.0.8": "17.0.8+7.1",
@@ -71,13 +74,15 @@ _VmReleaseVersions = {
 # VM release versions (for Oracle GVM) for calculating prefixes.
 # buildifier: disable=name-conventions
 _VmReleaseVersionsOracle = {
+    "23.1.0": "21+35.1",
+    "21.0.0": "21+35.1",
     "20.0.2": "20.0.2+9.1",
     "20.0.1": "20.0.1+9.1",
     "17.0.8": "17.0.8+9.1",
     "17.0.7": "17.0.8+9.1",
 }
 
-def _generate_distribution_coordinate(dist, platform, version, component = None):
+def _generate_distribution_coordinate(dist, platform, version, java_version, component = None):
     """Generate a well-formed distribution coordinate key.
 
     Generates a key for the generated binary distribution map, which holds download
@@ -87,11 +92,17 @@ def _generate_distribution_coordinate(dist, platform, version, component = None)
         dist: Distribution for the coordinate (a `DistributionType`).
         platform: Platform for the release (a `DistributionPlatform`).
         version: Version string for the GraalVM release (aligned releases accepted).
+        java_version: Intended/requested Java version.
         component: Component to download; if downloading a JDK, `None` is expected.
 
     Returns:
         Generated distribution coordinate key.
     """
+
+    aligned_version = None
+    if version == "23.1.0" and java_version == "21":
+        version = "21.0.0"
+        aligned_version = "23.1.0"
 
     segments = [
         dist,
@@ -100,13 +111,14 @@ def _generate_distribution_coordinate(dist, platform, version, component = None)
     ]
     if component != None:
         segments.append(component)
-    segments.append(_AlignedVersions.get(version, version))
+
+    segments.append(aligned_version or _AlignedVersions.get(version, version))
 
     # format:  `<dist>_<rlse>_<platfrm>_<vrsn>`
     # example: `oracle_20.0.2_linux-x64_23.0.1`
     return "_".join(segments)
 
-def _resolve_distribution_artifact(dist, platform, version, component = None, strict = True):
+def _resolve_distribution_artifact(dist, platform, version, java_version, component = None, strict = True):
     """Resolve a distribution artifact URL and integrity set.
 
     Given the provided inputs, attempts to resolve a distribution config payload
@@ -117,6 +129,7 @@ def _resolve_distribution_artifact(dist, platform, version, component = None, st
         dist: Distribution for the coordinate (a `DistributionType`).
         platform: Platform for the release (a `DistributionPlatform`).
         version: Version string for the GraalVM release (aligned releases accepted).
+        java_version: Intended/requested Java version.
         component: Component to download; if downloading a JDK, `None` is expected.
         strict: Fail if the component cannot be found.
 
@@ -131,7 +144,7 @@ def _resolve_distribution_artifact(dist, platform, version, component = None, st
     if version == None:
         fail("Cannot calculate GraalVM artifact coordinate with `None` as `version`")
 
-    target_key = _generate_distribution_coordinate(dist, platform, version, component)
+    target_key = _generate_distribution_coordinate(dist, platform, version, java_version, component)
     config = _GRAALVM_BINDIST.get(target_key)
     if config == None and strict:
         fail("Failed to resolve distribution artifact at key '" + target_key + "'")
@@ -1723,6 +1736,106 @@ _GRAALVM_BINDIST = {
             "@platforms//cpu:x86_64",
             "@platforms//os:windows",
             "@rules_graalvm//platform/jvm:java20",
+        ],
+    },
+    "ce_21.0.0_linux-aarch64_23.1.0": {
+        # GraalVM CE 21.0.0 (Java 21), Linux (arm64), Version 23.1.0
+        "url": "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_linux-aarch64_bin.tar.gz",
+        "sha256": "bb4e92cf7eae91e474061aeae5ae75053a65cd558dbee76947827bf54d1b30a5",
+        "compatible_with": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:linux",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "ce_21.0.0_linux-x64_23.1.0": {
+        # GraalVM CE 21.0.0 (Java 21), Linux (amd64), Version 23.1.0
+        "url": "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_linux-x64_bin.tar.gz",
+        "sha256": "6c422941ccc58be5b891bb6499feeb72cd2b74d6729a29bf1fb8cc1a7d58b319",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:linux",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "ce_21.0.0_macos-aarch64_23.1.0": {
+        # GraalVM CE 21.0.0 (Java 21), macOS (arm64), Version 23.1.0
+        "url": "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_macos-aarch64_bin.tar.gz",
+        "sha256": "c58de71e60af7970ca087cb9f5af9a8770562aee0cac99d6017b63b8c0d50f37",
+        "compatible_with": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:macos",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "ce_21.0.0_macos-x64_23.1.0": {
+        # GraalVM CE 21.0.0 (Java 21), macOS (amd64), Version 23.1.0
+        "url": "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_macos-x64_bin.tar.gz",
+        "sha256": "935a32c4621d5144b4678dd135884435de3185683025cf0258dc1ed95d1f7fe1",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:macos",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "ce_21.0.0_windows-x64_23.1.0": {
+        # GraalVM CE 21.0.0 (Java 21), Windows (amd64), Version 23.1.0
+        "url": "https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_windows-x64_bin.zip",
+        "sha256": "808b65fae4ab03a2f52b5850852d7c7e098608aa8bbab918d40e8aeec870ae5f",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:windows",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "oracle_21.0.0_linux-aarch64_23.1.0": {
+        # Oracle GraalVM 21.0.0 (Java 21), Linux (arm64), Version 23.1.0
+        "url": "https://download.oracle.com/graalvm/21/archive/graalvm-jdk-21_linux-aarch64_bin.tar.gz",
+        "sha256": "eb1eaf9d1e1e01263b0acd552552686084903ae11a9a7698a144ef8c3ee02dec",
+        "compatible_with": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:linux",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "oracle_21.0.0_linux-x64_23.1.0": {
+        # Oracle GraalVM 21.0.0 (Java 21), Linux (amd64), Version 23.1.0
+        "url": "https://download.oracle.com/graalvm/21/archive/graalvm-jdk-21_linux-x64_bin.tar.gz",
+        "sha256": "be1ab3c9b08b5747b7cd577c991d25b52157cff1c8c5f290f8556c593b57a6f4",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:linux",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "oracle_21.0.0_macos-aarch64_23.1.0": {
+        # Oracle GraalVM 21.0.0 (Java 21), macOS (arm64), Version 23.1.0
+        "url": "https://download.oracle.com/graalvm/21/archive/graalvm-jdk-21_macos-aarch64_bin.tar.gz",
+        "sha256": "c2ca434adef1e497c8a4d942ae1dbf6bbd1c8174a6fcdafc65cde0e853285300",
+        "compatible_with": [
+            "@platforms//cpu:aarch64",
+            "@platforms//os:macos",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "oracle_21.0.0_macos-x64_23.1.0": {
+        # Oracle GraalVM 21.0.0 (Java 21), macOS (amd64), Version 23.1.0
+        "url": "https://download.oracle.com/graalvm/21/archive/graalvm-jdk-21_macos-x64_bin.tar.gz",
+        "sha256": "0744ab104998f8f45d9ae582134963f5d273286dff9aff586aed24f5f8434660",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:macos",
+            "@rules_graalvm//platform/jvm:java21",
+        ],
+    },
+    "oracle_21.0.0_windows-x64_23.1.0": {
+        # Oracle GraalVM 21.0.0 (Java 21), Windows (amd64), Version 23.1.0
+        "url": "https://download.oracle.com/graalvm/21/archive/graalvm-jdk-21_windows-x64_bin.zip",
+        "sha256": "392acacbdae30487050968892b22ef05d2dc29b7e25816e16c5080795a813c82",
+        "compatible_with": [
+            "@platforms//cpu:x86_64",
+            "@platforms//os:windows",
+            "@rules_graalvm//platform/jvm:java21",
         ],
     },
 }
